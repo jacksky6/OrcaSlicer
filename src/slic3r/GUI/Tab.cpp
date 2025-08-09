@@ -4394,23 +4394,7 @@ if (is_marlin_flavor)
 
         optgroup = page->new_optgroup(L("Wipe tower"), "param_tower");
         optgroup->append_single_option_line("purge_in_prime_tower", "semm");
-        {
-            Option opt = optgroup->get_option("have_purge_system");
-            wxString lang = wxGetApp().current_language_code_safe();
-            wxString lang_norm = lang;
-            lang_norm.Replace("-", "_");
-            // zh_CN / zh_SG -> Simplified; zh_TW / zh_HK / zh_MO -> Traditional
-            if (lang_norm.StartsWith("zh")) {
-                wxString lang_lower = lang_norm.Lower();
-                const bool is_trad = (lang_lower == "zh_tw" || lang_lower == "zh_hk" || lang_lower == "zh_mo" || lang_lower.Find("hant") != wxNOT_FOUND);
-                if (is_trad) {
-                    opt.opt.label = L("有廢料排出系統/拉屎裝置");
-                } else {
-                    opt.opt.label = L("有废料排出系统/拉屎装置");
-                }
-            }
-            optgroup->append_single_option_line(opt, "semm");
-        }
+        optgroup->append_single_option_line("have_purge_system", "semm");
         optgroup->append_single_option_line("enable_filament_ramming", "semm");
 
 
