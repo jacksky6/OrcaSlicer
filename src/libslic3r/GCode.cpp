@@ -739,7 +739,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         const bool is_ramming       = (gcodegen.config().single_extruder_multi_material) ||
                                 (!gcodegen.config().single_extruder_multi_material &&
                                  gcodegen.config().filament_multitool_ramming.get_at(tcr.initial_tool));
-        const bool should_travel_to_tower = !tcr.priming && (tcr.force_travel     // wipe tower says so
+        const bool have_purge_system = gcodegen.config().have_purge_system;
+        const bool should_travel_to_tower = !tcr.priming && !have_purge_system && (tcr.force_travel     // wipe tower says so
                                                              || !needs_toolchange // this is just finishing the tower with no toolchange
                                                              || will_go_down // Make sure to move to prime tower before moving down
                                                              || is_ramming);
@@ -775,6 +776,15 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 gcodegen.writer().set_position(position);
                 deretraction_str += gcodegen.unretract();
             }
+        }
+
+        // If printer has external purge system, perform toolchange first, then travel to wipe tower start position (if needed),
+        // so blobs won't be left on the tower before Tx.
+        if (gcodegen.config().have_purge_system && gcodegen.config().enable_prime_tower && !tcr.priming) {
+            gcode += gcodegen.retract();
+            gcodegen.m_avoid_crossing_perimeters.use_external_mp_once();
+            gcode += gcodegen.travel_to(wipe_tower_point_to_object_point(gcodegen, start_pos + plate_origin_2d), erMixed, "Travel to a Wipe Tower");
+            gcode += gcodegen.unretract();
         }
 
         // Insert the toolchange and deretraction gcode into the generated gcode.

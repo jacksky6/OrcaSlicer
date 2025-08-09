@@ -1258,6 +1258,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                purge_in_prime_tower))
     ((ConfigOptionBool,                enable_filament_ramming))
     ((ConfigOptionBool,                support_multi_bed_types))
+    // Orca: external purge system toggle
+    ((ConfigOptionBool,                have_purge_system))
 
     // Small Area Infill Flow Compensation
     ((ConfigOptionStrings,              small_area_infill_flow_compensation_model))
@@ -1376,6 +1378,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionPercent,            wipe_tower_extra_flow))
     ((ConfigOptionFloats,             flush_volumes_matrix))
     ((ConfigOptionFloats,             flush_volumes_vector))
+    ((ConfigOptionBool,               have_purge_system))
 
     // Orca: mmu support
     ((ConfigOptionFloat,              wipe_tower_cone_angle))
