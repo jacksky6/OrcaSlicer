@@ -1370,8 +1370,19 @@ void Tab::toggle_option(const std::string& opt_key, bool toggle, int opt_index/*
     if (!m_active_page)
         return;
     Field* field = m_active_page->get_field(opt_key, opt_index);
-    if (field)
+    if (field) {
         field->toggle(toggle);
+    } else {
+        // Field not found - this might be causing the crash
+        // Let's try to find it in all pages
+        for (auto page : m_pages) {
+            field = page->get_field(opt_key, opt_index);
+            if (field) {
+                field->toggle(toggle);
+                break;
+            }
+        }
+    }
 }
 
 void Tab::toggle_line(const std::string &opt_key, bool toggle)
@@ -1523,6 +1534,8 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         update_wiping_button_visibility();
     }
 
+    if(opt_key == "have_purge_system")
+        wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
 
     if (opt_key == "single_extruder_multi_material"  ){
         const auto bSEMM = m_config->opt_bool("single_extruder_multi_material");
@@ -1532,7 +1545,6 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 
     if(opt_key == "purge_in_prime_tower")
         wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
-
 
     if (opt_key == "enable_prime_tower") {
         auto timelapse_type = m_config->option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
@@ -1729,6 +1741,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     if (opt_key == "single_extruder_multi_material" && m_config->opt_bool("single_extruder_multi_material") == false){
         DynamicPrintConfig new_conf = *m_config;
         new_conf.set_key_value("purge_in_prime_tower", new ConfigOptionBool(false));
+        new_conf.set_key_value("have_purge_system", new ConfigOptionBool(false));
         m_config_manipulation.apply(m_config, &new_conf);
     }
 
@@ -4684,6 +4697,7 @@ void TabPrinter::toggle_options()
         toggle_option("extruders_count", !bSEMM);
         toggle_option("manual_filament_change", bSEMM);
         toggle_option("purge_in_prime_tower", bSEMM && !is_BBL_printer);
+        toggle_option("have_purge_system", bSEMM && !is_BBL_printer);
     }
     wxString extruder_number;
     long val = 1;
