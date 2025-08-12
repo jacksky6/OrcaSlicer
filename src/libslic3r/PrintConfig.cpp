@@ -4803,7 +4803,7 @@ void PrintConfigDef::init_fff_params()
     // Orca: external purge system toggle
     def = this->add("have_purge_system", coBool);
     def->label = L("Have Purge System");
-    def->tooltip = L("If your printer has an external purge/waste system, enable this to perform filament change (Tx) before traveling to the prime tower, avoiding blobs on the tower. 你有排废装置时启用，换色先执行，不先 travel 到色塔。");
+    def->tooltip = L("If your printer has an external purge/waste system, enable this to perform filament change (Tx) before traveling to the prime tower, avoiding blobs on the tower.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 

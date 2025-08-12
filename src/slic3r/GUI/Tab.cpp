@@ -4688,16 +4688,9 @@ void TabPrinter::toggle_options()
              })
             toggle_option(el, !is_BBL_printer);
 
-        auto bSEMM = m_config->opt_bool("single_extruder_multi_material");
-        if (!bSEMM && m_config->opt_bool("manual_filament_change")) {
-            DynamicPrintConfig new_conf = *m_config;
-            new_conf.set_key_value("manual_filament_change", new ConfigOptionBool(false));
-            load_config(new_conf);
-        }
-        toggle_option("extruders_count", !bSEMM);
-        toggle_option("manual_filament_change", bSEMM);
-        toggle_option("purge_in_prime_tower", bSEMM && !is_BBL_printer);
-        toggle_option("have_purge_system", bSEMM && !is_BBL_printer);
+        // BBL打印机不显示这些选项，其他打印机显示
+        toggle_option("purge_in_prime_tower", !is_BBL_printer);
+        toggle_option("have_purge_system", !is_BBL_printer);
     }
     wxString extruder_number;
     long val = 1;

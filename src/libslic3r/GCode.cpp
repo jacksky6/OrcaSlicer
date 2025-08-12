@@ -745,7 +745,9 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                                                              || will_go_down // Make sure to move to prime tower before moving down
                                                              || is_ramming);
 
-        if (should_travel_to_tower || gcodegen.m_need_change_layer_lift_z) {
+        // Only travel to tower before toolchange if we don't have a purge system
+        // With purge system, we travel after toolchange to avoid blobs on the tower
+        if ((should_travel_to_tower && !have_purge_system) || gcodegen.m_need_change_layer_lift_z) {
             // FIXME: It would be better if the wipe tower set the force_travel flag for all toolchanges,
             // then we could simplify the condition and make it more readable.
             gcode += gcodegen.retract();
@@ -778,14 +780,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             }
         }
 
-        // If printer has external purge system, perform toolchange first, then travel to wipe tower start position (if needed),
-        // so blobs won't be left on the tower before Tx.
-        if (gcodegen.config().have_purge_system && gcodegen.config().enable_prime_tower && !tcr.priming) {
-            gcode += gcodegen.retract();
-            gcodegen.m_avoid_crossing_perimeters.use_external_mp_once();
-            gcode += gcodegen.travel_to(wipe_tower_point_to_object_point(gcodegen, start_pos + plate_origin_2d), erMixed, "Travel to a Wipe Tower");
-            gcode += gcodegen.unretract();
-        }
+        // Note: The travel to wipe tower for purge system case is now handled after toolchange in the main gcode sequence
 
         // Insert the toolchange and deretraction gcode into the generated gcode.
 
@@ -801,6 +796,17 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         unescape_string_cstyle(tcr_escaped_gcode, tcr_gcode);
         gcode += tcr_gcode;
         check_add_eol(toolchange_gcode_str);
+        
+        // If printer has external purge system, travel to wipe tower start position after toolchange,
+        // so filament change happens before moving to the tower (avoiding blobs on the tower).
+        // We need to check the same conditions that would normally trigger travel, but without the !have_purge_system constraint
+        const bool should_travel_to_tower_after_toolchange = !tcr.priming && have_purge_system && (tcr.force_travel || !needs_toolchange || will_go_down || is_ramming);
+        if (gcodegen.config().have_purge_system && gcodegen.config().enable_prime_tower && should_travel_to_tower_after_toolchange) {
+            gcode += gcodegen.retract();
+            gcodegen.m_avoid_crossing_perimeters.use_external_mp_once();
+            gcode += gcodegen.travel_to(wipe_tower_point_to_object_point(gcodegen, start_pos + plate_origin_2d), erMixed, "Travel to a Wipe Tower after toolchange");
+            gcode += gcodegen.unretract();
+        }
 
         // SoftFever: set new PA for new filament
         if (new_extruder_id != -1 && gcodegen.config().enable_pressure_advance.get_at(new_extruder_id)) {

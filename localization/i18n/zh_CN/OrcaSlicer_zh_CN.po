@@ -18633,3 +18633,10 @@ msgstr ""
 
 #~ msgid "Orient the model"
 #~ msgstr "旋转模型"
+ 
+# have_purge_system feature translation 
+msgid "Have Purge System" 
+msgstr "有排废系统即拉屎" 
+ 
+msgid "If your printer has an external purge/waste system, enable this to perform filament change (Tx) before traveling to the prime tower, avoiding blobs on the tower." 
+msgstr "如果你的打印机有外部排废系统，启用此选项会在移动到色塔前先执行换料(Tx)，避免在色塔上产生堆料。" 

@@ -2334,24 +2334,47 @@ public:
     const std::string&  opt_string(const t_config_option_key &opt_key, unsigned int idx) const  { return const_cast<DynamicConfig*>(this)->opt_string(opt_key, idx); }
 
     double&             opt_float(const t_config_option_key &opt_key)                           { return this->option<ConfigOptionFloat>(opt_key)->value; }
-    const double&       opt_float(const t_config_option_key &opt_key) const                     { return dynamic_cast<const ConfigOptionFloat*>(this->option(opt_key))->value; }
+    const double&       opt_float(const t_config_option_key &opt_key) const                     { 
+        static double default_value = 0.0;
+        auto* opt = dynamic_cast<const ConfigOptionFloat*>(this->option(opt_key));
+        return opt ? opt->value : default_value;
+    }
     double&             opt_float(const t_config_option_key &opt_key, unsigned int idx)         { return this->option<ConfigOptionFloats>(opt_key)->get_at(idx); }
-    const double&       opt_float(const t_config_option_key &opt_key, unsigned int idx) const   { return dynamic_cast<const ConfigOptionFloats*>(this->option(opt_key))->get_at(idx); }
+    const double&       opt_float(const t_config_option_key &opt_key, unsigned int idx) const   { 
+        static double default_value = 0.0;
+        auto* opt = dynamic_cast<const ConfigOptionFloats*>(this->option(opt_key));
+        return opt ? opt->get_at(idx) : default_value;
+    }
 
     int&                opt_int(const t_config_option_key &opt_key)                             { return this->option<ConfigOptionInt>(opt_key)->value; }
-    int                 opt_int(const t_config_option_key &opt_key) const                       { return dynamic_cast<const ConfigOptionInt*>(this->option(opt_key))->value; }
+    int                 opt_int(const t_config_option_key &opt_key) const                       { 
+        auto* opt = dynamic_cast<const ConfigOptionInt*>(this->option(opt_key));
+        return opt ? opt->value : 0;
+    }
     int&                opt_int(const t_config_option_key &opt_key, unsigned int idx)           { return this->option<ConfigOptionInts>(opt_key)->get_at(idx); }
-    int                 opt_int(const t_config_option_key &opt_key, unsigned int idx) const     { return dynamic_cast<const ConfigOptionInts*>(this->option(opt_key))->get_at(idx); }
+    int                 opt_int(const t_config_option_key &opt_key, unsigned int idx) const     { 
+        auto* opt = dynamic_cast<const ConfigOptionInts*>(this->option(opt_key));
+        return opt ? opt->get_at(idx) : 0;
+    }
 
     // In ConfigManipulation::toggle_print_fff_options, it is called on option with type ConfigOptionEnumGeneric* and also ConfigOptionEnum*.
     // Thus the virtual method getInt() is used to retrieve the enum value.
     template<typename ENUM>
     ENUM                opt_enum(const t_config_option_key &opt_key) const                      { return static_cast<ENUM>(this->option(opt_key)->getInt()); }
     // BBS
-    int                 opt_enum(const t_config_option_key &opt_key, unsigned int idx) const    { return dynamic_cast<const ConfigOptionEnumsGeneric*>(this->option(opt_key))->get_at(idx); }
+    int                 opt_enum(const t_config_option_key &opt_key, unsigned int idx) const    { 
+        auto* opt = dynamic_cast<const ConfigOptionEnumsGeneric*>(this->option(opt_key));
+        return opt ? opt->get_at(idx) : 0;
+    }
 
-    bool                opt_bool(const t_config_option_key &opt_key) const                      { return this->option<ConfigOptionBool>(opt_key)->value != 0; }
-    bool                opt_bool(const t_config_option_key &opt_key, unsigned int idx) const    { return this->option<ConfigOptionBools>(opt_key)->get_at(idx) != 0; }
+    bool                opt_bool(const t_config_option_key &opt_key) const                      { 
+        auto* opt = this->option<ConfigOptionBool>(opt_key);
+        return opt ? (opt->value != 0) : false;
+    }
+    bool                opt_bool(const t_config_option_key &opt_key, unsigned int idx) const    { 
+        auto* opt = this->option<ConfigOptionBools>(opt_key);
+        return opt ? (opt->get_at(idx) != 0) : false;
+    }
 
     // Command line processing
     bool                read_cli(int argc, const char* const argv[], t_config_option_keys* extra, t_config_option_keys* keys = nullptr);
